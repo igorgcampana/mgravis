@@ -622,6 +622,38 @@
         async function extractDataWithAI() {
             const text = document.getElementById('aiInput').value.trim();
             if (!text) { alert('Cole o texto da evolução para extrair os dados!'); return; }
+
+            showLoading('Extraindo dados estruturados com IA...');
+            const fieldsList = currentRecordType === 'Baseline' ? baselineFields : seguimentoFields;
+
+            // Build schema with options hints for the AI
+            const schemaHinted = {};
+            fieldsList.forEach(f => {
+                if (f.readonly) return;
+                if (f.type === 'select' || f.type === 'checkbox') {
+                    schemaHinted[f.name] = `[ESCOLHA UMA OU MAIS DAS OPÇÕES: ${f.options.join(' | ')}]`;
+                } else if (f.type === 'date') {
+                    schemaHinted[f.name] = '[DATA no formato DD/MM/AAAA ou vazio]';
+                } else if (f.type === 'number') {
+                    schemaHinted[f.name] = '[NÚMERO ou vazio]';
+                } else {
+                    schemaHinted[f.name] = '';
+                }
+            });
+            schemaHinted['Prontuário'] = currentRecordId;
+
+            const promptStr = `Você é um assistente médico especialista em Miastenia Gravis.
+Leia o texto clínico e retorne EXCLUSIVAMENTE um JSON seguindo o esquema abaixo.
+REGRAS CRÍTICAS:
+1. Para campos com opções fixas [ESCOLHA ...], retorne EXATAMENTE uma das opções listadas (a mais adequada ao texto). Nunca invente texto fora das opções.
+2. Para campos checkbox (imunossupressores, comorbidades), você pode retornar múltiplos valores separados por vírgula, usando SOMENTE os textos das opções.
+3. Para campos de data, use o formato DD/MM/AAAA.
+4. Para campos sem informação no texto, retorne string vazia "".
+5. NUNCA altere as chaves do JSON.
+
+ESQUEMA OBRIGATÓRIO:
+${JSON.stringify(schemaHinted, null, 2)}`;
+
             try {
                 const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
                     method: 'POST',
