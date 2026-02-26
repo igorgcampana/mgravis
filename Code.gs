@@ -1,5 +1,5 @@
 const SHEET_ID = '16qWi8kEus6aYnHENO1NjU55uCCzpt57xd-MHWy7kWqE';
-const GEMINI_API_KEY = 'AIzaSyA_CkGpFJnuvH8an21O6AsFuHMysJGpzog';
+const GEMINI_API_KEY = 'AIzaSyCCyMdL4BhspMU0YFBXDaWQ3xdWyZKG7ig';
 
 function doGet(e) {
   const action = e.parameter.action;
