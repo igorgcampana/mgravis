@@ -135,7 +135,7 @@ function extractFromGemini(prompt, text) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
   
   const payload = {
-    system_instruction: { parts: [{ text: prompt }] },
+    systemInstruction: { parts: [{ text: prompt }] },
     contents: [{ parts: [{ text: text }] }],
     generationConfig: {
       temperature: 0.1,

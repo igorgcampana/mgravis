@@ -657,6 +657,7 @@ ${JSON.stringify(schemaHinted, null, 2)}`;
             try {
                 const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
                     method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
                         type: 'extractAI',
                         data: { prompt: promptStr, text: text }
