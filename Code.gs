@@ -132,7 +132,11 @@ function doOptions(e) {
  * Função auxiliar para chamar a API do Gemini via UrlFetchApp
  */
 function extractFromGemini(prompt, text) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+  // Tenta pegar a chave do PropertiesService (Propriedades do Script). Se não existir, usa a constante.
+  let apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!apiKey) apiKey = GEMINI_API_KEY;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
   
   const payload = {
     systemInstruction: { parts: [{ text: prompt }] },
@@ -153,19 +157,36 @@ function extractFromGemini(prompt, text) {
   try {
     const response = UrlFetchApp.fetch(url, options);
     const resText = response.getContentText();
-    const resJson = JSON.parse(resText);
+    
+    // Tratamento robusto para parsing da resposta geral da API do Google
+    let resJson;
+    try {
+      resJson = JSON.parse(resText);
+    } catch (e) {
+      return { success: false, raw: resText, error: `Falha ao interpretar resposta do Google: ${e.message}` };
+    }
     
     if (response.getResponseCode() !== 200) {
-      return { error: `Erro Gemini: ${resText}` };
+      return { success: false, raw: resText, error: `Erro na API do Gemini: ${resJson.error ? resJson.error.message : resText}` };
     }
 
-    if (resJson.candidates && resJson.candidates[0]) {
+    if (resJson.candidates && resJson.candidates[0] && resJson.candidates[0].content) {
       const aiContent = resJson.candidates[0].content.parts[0].text;
-      return { success: true, data: JSON.parse(aiContent) };
+      
+      // Limpeza robusta: remove os marcadores markdown ```json e ```
+      const cleanContent = aiContent.replace(/```(json)?/gi, '').replace(/```/g, '').trim();
+      
+      try {
+        const parsedData = JSON.parse(cleanContent);
+        return { success: true, data: parsedData, raw: cleanContent };
+      } catch (parseErr) {
+        // Fallback: se não der parse de jeito nenhum, retorna o texto bruto
+        return { success: false, raw: aiContent, error: 'O modelo não retornou um JSON válido.' };
+      }
     } else {
-      return { error: 'Gemini não retornou candidatos.', debug: resJson };
+      return { success: false, raw: resText, error: 'Gemini não retornou nenhum texto/candidato útil.' };
     }
   } catch (e) {
-    return { error: `Erro no servidor Google: ${e.toString()}` };
+    return { success: false, raw: "", error: `Exceção fatal no Apps Script: ${e.toString()}` };
   }
 }
