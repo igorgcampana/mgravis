@@ -136,7 +136,7 @@ function extractFromGemini(prompt, text) {
   let apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
   if (!apiKey) apiKey = GEMINI_API_KEY;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   
   const payload = {
     systemInstruction: { parts: [{ text: prompt }] },
