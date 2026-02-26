@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Registro Clínico MG</title>
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #20515F;
+            --card-bg: #DDD0C6;
+            --bg-color: #E5EBEA;
+            --text-secondary: #737271;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Merriweather', serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        button,
+        .header-title,
+        label {
+            font-family: 'League Spartan', sans-serif;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 30px 40px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            letter-spacing: 1px;
+        }
+
+        main {
+            flex-grow: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .screen {
+            display: none;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea,
+        input[type="password"] {
+            padding: 12px 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: 'Merriweather', serif;
+            font-size: 15px;
+            background: #fafafa;
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: #fff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 14px 28px;
+            font-size: 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            background-color: #153943;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #555;
+        }
+
+        /* Spinner Loading overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        .spinner {
+            border: 8px solid var(--card-bg);
+            border-top: 8px solid var(--primary-color);
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        #loadingText {
+            font-family: 'League Spartan', sans-serif;
+            font-size: 1.2em;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        footer {
+            background-color: #fff;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+            color: var(--text-secondary);
+            border-top: 1px solid #ddd;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-action button {
+            background: none;
+            border: 2px solid var(--text-secondary);
+            color: var(--text-secondary);
+            font-size: 14px;
+            padding: 8px 16px;
+            box-shadow: none;
+        }
+
+        .footer-action button:hover {
+            background: var(--text-secondary);
+            color: #fff;
+            transform: none;
+        }
+
+        h2.screen-title {
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 2em;
+            border-bottom: 3px solid var(--card-bg);
+            padding-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .flex-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .chart-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid #f5c6cb;
+            font-family: 'League Spartan', sans-serif;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid #c3e6cb;
+            font-family: 'League Spartan', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Registro Clínico MG</h1>
+        <p style="font-family: 'League Spartan'; font-size: 1.2em; margin-top: 10px;">Coleta de Dados Clínicos em
+            Miastenia Gravis</p>
+    </header>
+
+    <main>
+        <!-- SCREEN: SEARCH ID -->
+        <div id="screen-id" class="screen active">
+            <h2 class="screen-title">Identificação do Paciente</h2>
+            <div class="card">
+                <div class="form-group">
+                    <label for="inputId">Prontuário</label>
+                    <input type="text" id="inputId" placeholder="Digite o número do prontuário..." autocomplete="off">
+                </div>
+                <div class="flex-actions" style="margin-top: 20px;">
+                    <button onclick="checkPatientId()">Iniciar Avaliação</button>
+                </div>
+            </div>
+            <div id="errorId" class="alert-error"></div>
+        </div>
+
+        <!-- SCREEN: AI EXTRACTION -->
+        <div id="screen-ai" class="screen">
+            <h2 class="screen-title">Extração com IA - Evolução Clínica (<span id="spanType"></span>)</h2>
+            <p>Cole abaixo o texto livre da evolução clínica para que a Inteligência Artificial estruture os dados
+                iniciais do formulário.</p>
+            <div class="form-group full-width" style="margin-top: 20px;">
+                <textarea id="aiInput" placeholder="Cole o texto da evolução clínica aqui..."></textarea>
+            </div>
+            <div class="flex-actions">
+                <button onclick="extractDataWithAI()">Extrair Dados com IA</button>
+                <button class="btn-secondary" onclick="skipAI()">Preencher Manualmente</button>
+                <button class="btn-secondary" onclick="showScreen('screen-id')">Voltar</button>
+            </div>
+        </div>
+
+        <!-- SCREEN: FORM -->
+        <div id="screen-form" class="screen">
+            <h2 class="screen-title">Revisão e Preenchimento (<span id="formTypeTitle"></span>)</h2>
+            <div class="card">
+                <form id="clinicalForm" onsubmit="submitForm(event)">
+                    <div class="form-grid" id="dynamicFieldsContainer">
+                        <!-- Fields will be injected here via JS -->
+                    </div>
+                    <div class="flex-actions" style="margin-top: 30px; justify-content: flex-end;">
+                        <button type="button" class="btn-secondary" onclick="showScreen('screen-ai')">Voltar</button>
+                        <button type="submit">Gravar Dados</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- SCREEN: SUCCESS -->
+        <div id="screen-success" class="screen" style="text-align: center;">
+            <h2 class="screen-title" style="border: none;">Dados Gravados com Sucesso!</h2>
+            <p style="font-size: 1.2em; margin-bottom: 40px;">As informações foram salvas na planilha de dados clínicos.
+            </p>
+            <button onclick="resetApp()">Nova Avaliação</button>
+        </div>
+
+        <!-- SCREEN: DOCTOR LOGIN -->
+        <div id="screen-doctor-login" class="screen">
+            <h2 class="screen-title">Acesso Restrito - Área do Médico</h2>
+            <div class="card" style="max-width: 500px; margin: 0 auto;">
+                <div class="form-group">
+                    <label for="docPassword">Senha de Acesso</label>
+                    <input type="password" id="docPassword" placeholder="Informe a senha...">
+                </div>
+                <div id="errorLogin" class="alert-error" style="margin-top: 15px;"></div>
+                <div class="flex-actions" style="margin-top: 20px;">
+                    <button onclick="loginDoctor()">Acessar</button>
+                    <button class="btn-secondary" onclick="showScreen('screen-id')">Voltar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: DOCTOR DASHBOARD -->
+        <div id="screen-doctor-dash" class="screen">
+            <h2 class="screen-title">Área do Médico - Histórico do Paciente</h2>
+            <div class="card">
+                <div style="display: flex; gap: 15px; align-items: flex-end;">
+                    <div class="form-group" style="flex-grow: 1;">
+                        <label for="searchId">Buscar pelo Prontuário</label>
+                        <input type="text" id="searchId" placeholder="ID...">
+                    </div>
+                    <button onclick="fetchHistory()">Buscar Histórico</button>
+                    <button class="btn-secondary" onclick="logoutDoctor()">Sair</button>
+                </div>
+            </div>
+
+            <div id="dashboardContent" style="display: none;">
+                <div class="card">
+                    <h3 style="margin-top:0;">Resumo do Histórico</h3>
+                    <p>Total de avaliações encontradas: <span id="totalEvals">0</span></p>
+                </div>
+
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <canvas id="chartMGADL"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="chartMGFA"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div>Dr. Igor Campana - Departamento de Neurologia</div>
+            <div class="footer-action">
+                <button onclick="showScreen('screen-doctor-login')">Acesso restrito</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText">Carregando...</div>
+    </div>
+
+    <script>
+        // ======= CONFIGURAÇÕES =======
+        const GOOGLE_APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylIUZ_w4yDTzagZB2drnJDW9wbdM84R6fO_3vz0GPMKuscPbBoNJUlYEgu4AnsFZpqCg/exec';
+        const ACCESS_PASSWORD = 'mgIAMSPE2026';
+
+        // ======= VARIÁVEIS GLOBAIS =======
+        let currentRecordId = '';
+        let currentRecordType = ''; // 'Baseline' ou 'Seguimento'
+        let chartInstanceADL = null;
+        let chartInstanceMGFA = null;
+
+        // ======= DEFINIÇÃO DE CAMPOS DO FORMULÁRIO =======
+        // Cada campo: { name, type ('text'|'number'|'date'|'select'|'checkbox'), options[], required }
+        const MGADL_OPTIONS = [
+            '0 — Normal',
+            '1 — Leve / intermitente (sempre compreendida)',
+            '2 — Frequente / moderada (às vezes difícil de entender)',
+            '3 — Constante / grave (difícil ou impossível de entender)'
+        ];
+        const MGADL_CHEW = ['0 — Normal', '1 — Fadiga com alimentos sólidos', '2 — Precisa de dieta macia', '3 — Sonda gástrica / não consegue mastigar'];
+        const MGADL_SWAL = ['0 — Normal', '1 — Engasgos ocasionais', '2 — Engasgos frequentes / precisa adaptar consistência', '3 — Sonda gástrica / não consegue deglutir'];
+        const MGADL_BREATH = ['0 — Normal', '1 — Dispneia aos esforços', '2 — Dispneia em repouso ou ao falar frases curtas', '3 — Dependência de ventilador / insuficiência respiratória'];
+        const MGADL_HYGIENE = ['0 — Nenhuma dificuldade', '1 — Cansaço, mas realiza sem pausa', '2 — Realiza com pausas ou ajuda parcial', '3 — Não consegue realizar'];
+        const MGADL_CHAIR = ['0 — Nenhuma dificuldade', '1 — Cansaço, mas levanta sem usar os braços', '2 — Usa os braços ou precisa de várias tentativas', '3 — Precisa de ajuda de outra pessoa'];
+        const MGADL_VIS = ['0 — Nenhuma', '1 — Ocasional (< 50% do tempo acordado)', '2 — Frequente (≥ 50% do tempo acordado)', '3 — Constante'];
+        const MGFA_OPTIONS = ['I', 'IIa', 'IIb', 'IIIa', 'IIIb', 'IVa', 'IVb', 'V'];
+        const IMUNO_OPTIONS = ['Azatioprina', 'Micofenolato', 'Metotrexato', 'Ciclosporina', 'Tacrolimo', 'Rituximabe', 'Inibidor C5 (Eculizumabe / Ravulizumabe)', 'FcRn (Efgartigimode / Rozanolixizumabe / outro)', 'Outro', 'Nenhum'];
+        const SIM_NAO = ['Sim', 'Não'];
+        const SIM_NAO_DESC = ['Sim', 'Não', 'Desconhecido'];
+
+        const baselineFields = [
+            { name: 'Data da avaliação (baseline)', type: 'date', required: true },
+            { name: 'Quem preencheu (Nome – R / Staff)', type: 'text', required: true },
+            { name: 'Ambulatório', type: 'select', options: ['Miastenia IAMSPE', 'Outro (especificar)'], required: true },
+            { name: 'Prontuário', type: 'text', required: true, readonly: true },
+            { name: 'Data de nascimento', type: 'date', required: true },
+            { name: 'Sexo biológico', type: 'select', options: ['Masculino', 'Feminino'], required: true },
+            { name: 'Etnia autodeclarada', type: 'select', options: ['Branco', 'Preto', 'Pardo', 'Amarelo', 'Indígena', 'Ignorado', 'Prefiro não informar'], required: false },
+            { name: 'Anos de estudo (número inteiro, 0–40)', type: 'number', required: false },
+            { name: 'Data de início dos sintomas', type: 'date', required: true },
+            { name: 'Data do diagnóstico', type: 'date', required: true },
+            { name: 'Anticorpos', type: 'select', options: ['Anti-AChR', 'Anti-MuSK', 'Anti-LRP4', 'Nenhum / Soronegativo', 'Não disponível'], required: true },
+            { name: 'Comorbidades autoimunes associadas (marque todas que se aplicam)', type: 'checkbox', options: ['Doença tireoidiana autoimune (Hashimoto / Graves)', 'Lúpus (LES)', 'Artrite Reumatóide', 'Diabetes tipo 1', 'Outra', 'Nenhuma'], required: false, fullWidth: true },
+            { name: 'ENMG realizada?', type: 'select', options: ['Sim', 'Não'], required: true },
+            { name: 'Resultado da ENMG', type: 'select', options: ['Estimulação repetitiva compatível', 'Fibra única compatível', 'Ambos compatíveis', 'Inconclusivo / não compatível'], required: false },
+            { name: 'MGFA no diagnóstico (ou pior MGFA já atingida)', type: 'select', options: MGFA_OPTIONS, required: true },
+            { name: 'Crise miastênica prévia?', type: 'select', options: SIM_NAO_DESC, required: false },
+            { name: 'Já necessitou de UTI? (se houve crise)', type: 'select', options: SIM_NAO, required: false },
+            { name: 'Já necessitou de ventilação mecânica? (se houve crise)', type: 'select', options: SIM_NAO, required: false },
+            { name: 'Timectomia realizada?', type: 'select', options: ['Sim', 'Não', 'Desconhecido', 'Não se aplica'], required: true },
+            { name: 'Data da timectomia', type: 'date', required: false },
+            { name: 'Histologia', type: 'select', options: ['Timoma', 'Hiperplasia tímica', 'Timo normal / atrófico', 'Outro', 'Não disponível'], required: false },
+            { name: 'Timoma diagnosticado?', type: 'select', options: SIM_NAO_DESC, required: false },
+            { name: 'Se timoma: data do diagnóstico (opcional)', type: 'date', required: false },
+            { name: 'MGFA atual (na visita baseline)', type: 'select', options: MGFA_OPTIONS, required: true },
+            { name: 'MG-ADL — Fala (Talking)', type: 'select', options: MGADL_OPTIONS, required: true },
+            { name: 'MG-ADL — Mastigação (Chewing)', type: 'select', options: MGADL_CHEW, required: true },
+            { name: 'MG-ADL — Deglutição (Swallowing)', type: 'select', options: MGADL_SWAL, required: true },
+            { name: 'MG-ADL — Respiração (Breathing)', type: 'select', options: MGADL_BREATH, required: true },
+            { name: 'MG-ADL — Higiene pessoal (escovar dentes, pentear cabelo etc.)', type: 'select', options: MGADL_HYGIENE, required: true },
+            { name: 'MG-ADL — Levantar da cadeira', type: 'select', options: MGADL_CHAIR, required: true },
+            { name: 'MG-ADL — Visão dupla / Diplopia', type: 'select', options: MGADL_VIS, required: true },
+            { name: 'MG-ADL — Ptose palpebral', type: 'select', options: MGADL_VIS, required: true },
+            { name: 'mRS atual (opcional)', type: 'select', options: ['0 — Sem sintomas', '1 — Sem incapacidade, sintomas menores', '2 — Incapacidade leve', '3 — Incapacidade moderada', '4 — Incapacidade moderadamente grave', '5 — Incapacidade grave'], required: false },
+            { name: 'Prednisona em uso?', type: 'select', options: SIM_NAO, required: true },
+            { name: 'Dose atual de prednisona (mg/dia)', type: 'number', required: false },
+            { name: 'Piridostigmina em uso?', type: 'select', options: SIM_NAO, required: true },
+            { name: 'Dose total diária de piridostigmina (mg/dia)', type: 'number', required: false },
+            { name: 'Imunossupressor / terapia-alvo atual (marque todos)', type: 'checkbox', options: IMUNO_OPTIONS, required: true, fullWidth: true },
+            { name: "Se marcou 'Outro', qual?", type: 'text', required: false },
+            { name: 'Terapia de resgate / ponte nos últimos 3 meses', type: 'select', options: ['IVIg', 'Plasmaférese', 'Ambas', 'Nenhuma'], required: true },
+            { name: 'Internação nos últimos 3 meses?', type: 'select', options: SIM_NAO, required: true },
+            { name: 'Motivo principal da internação', type: 'select', options: ['MG', 'Infecção', 'Outro'], required: false },
+            { name: 'UTI?', type: 'select', options: SIM_NAO, required: false },
+            { name: 'Ventilação mecânica?', type: 'select', options: SIM_NAO, required: false },
+            { name: 'Infecção relevante no último mês?', type: 'select', options: ['Sim', 'Não', 'Não sabe'], required: false },
+            { name: 'Evento adverso medicamentoso recente?', type: 'select', options: ['Nenhum', 'Leve', 'Moderado', 'Grave'], required: false },
+            { name: 'Descrever o evento adverso em 1 linha', type: 'text', required: false, fullWidth: true }
+        ];
+
+        const seguimentoFields = [
+            { name: 'Data da avaliação (seguimento)', type: 'date', required: true },
+            { name: 'Quem preencheu (Nome – R / Staff)', type: 'text', required: true },
+            { name: 'Tipo de visita', type: 'select', options: ['Seguimento rotineiro', 'Evento agudo', 'Retorno pós-alta'], required: true },
+            { name: 'Prontuário', type: 'text', required: true, readonly: true },
+            { name: 'Avaliacao', type: 'text', required: false, readonly: true },
+            { name: 'MGFA atual', type: 'select', options: MGFA_OPTIONS, required: true },
+            { name: 'PIS — Post-Intervention Status (MGFA)', type: 'select', options: ['Remissão completa estável (CSR)', 'Remissão farmacológica (PR)', 'Sintomas mínimos (MM)', 'Melhorado', 'Inalterado', 'Piorado', 'Exacerbação', 'Óbito'], required: true },
+            { name: 'MG-ADL — Fala (Talking)', type: 'select', options: MGADL_OPTIONS, required: true },
+            { name: 'MG-ADL — Mastigação (Chewing)', type: 'select', options: MGADL_CHEW, required: true },
+            { name: 'MG-ADL — Deglutição (Swallowing)', type: 'select', options: MGADL_SWAL, required: true },
+            { name: 'MG-ADL — Respiração (Breathing)', type: 'select', options: MGADL_BREATH, required: true },
+            { name: 'MG-ADL — Higiene pessoal (escovar dentes, pentear cabelo etc.)', type: 'select', options: MGADL_HYGIENE, required: true },
+            { name: 'MG-ADL — Levantar da cadeira', type: 'select', options: MGADL_CHAIR, required: true },
+            { name: 'MG-ADL — Visão dupla / Diplopia', type: 'select', options: MGADL_VIS, required: true },
+            { name: 'MG-ADL — Ptose palpebral', type: 'select', options: MGADL_VIS, required: true },
+            { name: 'MGC total (opcional — 0 a 50)', type: 'number', required: false },
+            { name: 'Percepção global desde a última visita', type: 'select', options: ['Muito melhor', 'Um pouco melhor', 'Estável', 'Um pouco pior', 'Muito pior'], required: true },
+            { name: 'Prednisona em uso?', type: 'select', options: SIM_NAO, required: true },
+            { name: 'Dose atual de prednisona (mg/dia)', type: 'number', required: false },
+            { name: 'Piridostigmina em uso?', type: 'select', options: SIM_NAO, required: true },
+            { name: 'Dose total diária de piridostigmina (mg/dia)', type: 'number', required: false },
+            { name: 'Imunossupressor / terapia-alvo atual (marque todos)', type: 'checkbox', options: IMUNO_OPTIONS, required: true, fullWidth: true },
+            { name: "Se marcou 'Outro', qual?", type: 'text', required: false },
+            { name: 'Houve troca / ajuste de tratamento desde a última visita?', type: 'select', options: SIM_NAO, required: true },
+            { name: 'O que mudou?', type: 'select', options: ['Iniciou medicação', 'Aumentou dose', 'Reduziu dose', 'Suspendeu medicação', 'Manteve dose', 'Outro'], required: false },
+            { name: 'Motivo principal', type: 'select', options: ['Falha terapêutica / Atividade de doença', 'Evento adverso / Toxicidade', 'Logística / Acesso ao medicamento', 'Gestação / planejamento familiar', 'Preferência do paciente', 'Outro'], required: false },
+            { name: 'Qual medicação foi alterada? (opcional)', type: 'text', required: false },
+            { name: 'Tipo de evento adverso (se aplicável)', type: 'select', options: ['Hepatotoxicidade', 'Citopenias', 'Infecção grave', 'Nefrotoxicidade', 'Outro', 'N/A'], required: false },
+            { name: 'Terapia de resgate / ponte nos últimos 3 meses', type: 'select', options: ['IVIg', 'Plasmaférese', 'Ambas', 'Nenhuma'], required: true },
+            { name: 'Exacerbação clínica desde a última visita?', type: 'select', options: SIM_NAO, required: true },
+            { name: 'Internação desde a última visita?', type: 'select', options: SIM_NAO, required: true },
+            { name: 'Motivo principal da internação', type: 'select', options: ['MG', 'Infecção', 'Outro'], required: false },
+            { name: 'UTI?', type: 'select', options: SIM_NAO, required: false },
+            { name: 'Ventilação mecânica?', type: 'select', options: SIM_NAO, required: false },
+            { name: 'Infecção relevante no último mês?', type: 'select', options: ['Sim', 'Não', 'Não sabe'], required: false },
+            { name: 'Evento adverso medicamentoso?', type: 'select', options: ['Nenhum', 'Leve', 'Moderado', 'Grave'], required: false },
+            { name: 'Descrever o evento adverso em 1 linha', type: 'text', required: false, fullWidth: true },
+            { name: 'Conduta hoje', type: 'select', options: ['Manter', 'Escalonar tratamento', 'Reduzir tratamento', 'Solicitar exames', 'Encaminhar', 'Outro'], required: false },
+            { name: 'Data-alvo do retorno', type: 'date', required: false }
+        ];
+
+        // ======= FUNÇÕES DE UI =======
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function showLoading(text = 'Aguarde...') {
+            document.getElementById('loadingText').innerText = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function resetApp() {
+            currentRecordId = '';
+            currentRecordType = '';
+            document.getElementById('inputId').value = '';
+            document.getElementById('aiInput').value = '';
+            showScreen('screen-id');
+        }
+
+        // ======= FLUXO PRINCIPAL =======
+        async function checkPatientId() {
+            const idInput = document.getElementById('inputId').value.trim();
+            if (!idInput) {
+                const err = document.getElementById('errorId');
+                err.innerText = "Por favor, digite o ID do prontuário.";
+                err.style.display = "block";
+                return;
+            }
+            document.getElementById('errorId').style.display = "none";
+            currentRecordId = idInput;
+
+            showLoading("Verificando prontuário...");
+            try {
+                if (GOOGLE_APP_SCRIPT_URL === 'URL_AQUI') {
+                    throw new Error("URL não configurada");
+                }
+                const response = await fetch(`${GOOGLE_APP_SCRIPT_URL}?action=checkId&id=${encodeURIComponent(idInput)}`);
+                const data = await response.json();
+                currentRecordType = data.type;
+            } catch (error) {
+                console.warn(error);
+                currentRecordType = 'Baseline';
+            }
+            hideLoading();
+
+            document.getElementById('spanType').innerText = currentRecordType;
+            showScreen('screen-ai');
+        }
+
+        // ======= IA E EXTRAÇÃO =======
+        function normalizeKey(str) {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        }
+
+        async function extractDataWithAI() {
+            const text = document.getElementById('aiInput').value.trim();
+            if (!text) { alert('Cole o texto da evolução para extrair os dados!'); return; }
+            try {
+                const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        type: 'extractAI',
+                        data: { prompt: promptStr, text: text }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    generateFormAndFill(result.data);
+                } else {
+                    throw new Error(result.error || 'Erro desconhecido na extração');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro na IA: ' + err.message + '\n\nIndo para preenchimento manual.');
+                skipAI();
+            }
+            hideLoading();
+        }
+
+        function skipAI() {
+            generateFormAndFill({});
+        }
+
+        // ======= RENDERIZAÇÃO DO FORMULÁRIO =======
+        function generateFormAndFill(dataObj) {
+            document.getElementById('formTypeTitle').innerText = currentRecordType;
+            const container = document.getElementById('dynamicFieldsContainer');
+            container.innerHTML = '';
+
+            const fieldsList = currentRecordType === 'Baseline' ? baselineFields : seguimentoFields;
+
+            fieldsList.forEach(fieldDef => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                if (fieldDef.fullWidth || fieldDef.type === 'checkbox') {
+                    group.classList.add('full-width');
+                }
+
+                const label = document.createElement('label');
+                label.innerText = fieldDef.name;
+                group.appendChild(label);
+
+                // Get value from dataObj (case/accent insensitive)
+                let val = '';
+                if (fieldDef.name === 'Prontuário') {
+                    val = currentRecordId;
+                } else {
+                    const normName = normalizeKey(fieldDef.name);
+                    for (let k in dataObj) {
+                        if (normalizeKey(k) === normName) { val = dataObj[k]; break; }
+                    }
+                }
+
+                if (fieldDef.type === 'checkbox') {
+                    // Render multiple checkboxes
+                    const selectedVals = (val || '').split(',').map(v => v.trim().toLowerCase());
+                    const cbWrapper = document.createElement('div');
+                    cbWrapper.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px 20px;padding:10px 0;';
+                    fieldDef.options.forEach(opt => {
+                        const cbLabel = document.createElement('label');
+                        cbLabel.style.cssText = 'display:flex;align-items:center;gap:6px;font-weight:normal;color:#333;font-size:0.95em;cursor:pointer;';
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.dataset.group = fieldDef.name;
+                        cb.value = opt;
+                        cb.style.cssText = 'width:16px;height:16px;cursor:pointer;accent-color:var(--primary-color);';
+                        if (selectedVals.includes(opt.toLowerCase())) cb.checked = true;
+                        cbLabel.appendChild(cb);
+                        cbLabel.appendChild(document.createTextNode(opt));
+                        cbWrapper.appendChild(cbLabel);
+                    });
+                    group.appendChild(cbWrapper);
+                } else if (fieldDef.type === 'select') {
+                    const select = document.createElement('select');
+                    select.name = fieldDef.name;
+                    // Empty placeholder option
+                    const emptyOpt = document.createElement('option');
+                    emptyOpt.value = '';
+                    emptyOpt.textContent = '-- Selecione --';
+                    select.appendChild(emptyOpt);
+                    fieldDef.options.forEach(opt => {
+                        const option = document.createElement('option');
+                        option.value = opt;
+                        option.textContent = opt;
+                        if (val && normalizeKey(val) === normalizeKey(opt)) option.selected = true;
+                        select.appendChild(option);
+                    });
+                    group.appendChild(select);
+                } else if (fieldDef.type === 'date') {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.name = fieldDef.name;
+                    input.placeholder = 'DD/MM/AAAA';
+                    input.value = val || '';
+                    if (fieldDef.readonly) input.readOnly = true;
+                    group.appendChild(input);
+                } else if (fieldDef.type === 'number') {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.name = fieldDef.name;
+                    input.min = '0';
+                    input.value = val || '';
+                    group.appendChild(input);
+                } else {
+                    // text
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.name = fieldDef.name;
+                    input.value = val || '';
+                    if (fieldDef.readonly) input.readOnly = true;
+                    group.appendChild(input);
+                }
+
+                container.appendChild(group);
+            });
+
+            showScreen('screen-form');
+        }
+
+        // ======= SUBMISSÃO =======
+        async function submitForm(e) {
+            e.preventDefault();
+
+            const form = document.getElementById('clinicalForm');
+            const dataObj = {};
+
+            // Collect regular inputs and selects
+            form.querySelectorAll('input[name], select[name], textarea[name]').forEach(input => {
+                if (input.name) dataObj[input.name] = input.value;
+            });
+
+            // Collect checkboxes (group by data-group, comma-separated)
+            const checkboxGroups = {};
+            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                const group = cb.dataset.group;
+                if (!group) return;
+                if (!checkboxGroups[group]) checkboxGroups[group] = [];
+                if (cb.checked) checkboxGroups[group].push(cb.value);
+            });
+            for (let group in checkboxGroups) {
+                dataObj[group] = checkboxGroups[group].join(', ');
+            }
+
+            const payload = { type: currentRecordType, data: dataObj };
+
+            showLoading('Enviando dados para a planilha...');
+
+            if (GOOGLE_APP_SCRIPT_URL === 'URL_AQUI') {
+                setTimeout(() => { hideLoading(); showScreen('screen-success'); console.log('Mock:', payload); }, 1500);
+                return;
+            }
+
+            try {
+                const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.error) throw new Error(result.error);
+                showScreen('screen-success');
+            } catch (error) {
+                console.error(error);
+                alert('Erro ao gravar dados! Verifique a conexão com o Google Apps Script.');
+            }
+            hideLoading();
+        }
+
+        // ======= ÁREA DO MÉDICO =======
+        function loginDoctor() {
+            const pwd = document.getElementById('docPassword').value;
+            const err = document.getElementById('errorLogin');
+            if (pwd === ACCESS_PASSWORD) {
+                err.style.display = 'none';
+                document.getElementById('docPassword').value = '';
+                showScreen('screen-doctor-dash');
+                document.getElementById('dashboardContent').style.display = 'none';
+            } else {
+                err.innerText = "Senha incorreta.";
+                err.style.display = 'block';
+            }
+        }
+
+        function logoutDoctor() {
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('searchId').value = '';
+            showScreen('screen-id');
+        }
+
+        async function fetchHistory() {
+            const id = document.getElementById('searchId').value.trim();
+            if (!id) return;
+
+            showLoading("Buscando histórico do paciente...");
+
+            if (GOOGLE_APP_SCRIPT_URL === 'URL_AQUI') {
+                hideLoading();
+                alert("Requer URL real do GAS para plotar gráficos corretamente.");
+                // Mock behavior
+                renderChartsMock();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${GOOGLE_APP_SCRIPT_URL}?action=getHistory&id=${encodeURIComponent(id)}`);
+                const data = await response.json();
+
+                if (!data.history) throw new Error("Erro ao interpretar histórico");
+
+                const history = data.history.seguimento || [];
+                // Se tiver baseline com notas/avaliações, pode somar. Seguimento é o principal pra evolução.
+
+                if (history.length === 0) {
+                    alert("Nenhum histórico de seguimento encontrado para este ID.");
+                } else {
+                    renderCharts(history);
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao carregar histórico.");
+            }
+
+            hideLoading();
+        }
+
+        function renderCharts(seguimentoData) {
+            document.getElementById('dashboardContent').style.display = 'block';
+            document.getElementById('totalEvals').innerText = seguimentoData.length;
+
+            // Ordena os dados por Nº avaliação
+            seguimentoData.sort((a, b) => (parseInt(a['Nº avaliação']) || 0) - (parseInt(b['Nº avaliação']) || 0));
+
+            const labels = seguimentoData.map(d => `Visita ${d['Nº avaliação']} (${d['Data avaliação'] || '?'})`);
+
+            // Extrair score MG-ADL (Assumindo que seja armazenado como número)
+            const adlValues = seguimentoData.map(d => parseInt(d['MG-ADL (8 itens)']) || 0);
+
+            // Render MG-ADL
+            if (chartInstanceADL) chartInstanceADL.destroy();
+            const ctxADL = document.getElementById('chartMGADL').getContext('2d');
+            chartInstanceADL = new Chart(ctxADL, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Evolução MG-ADL',
+                        data: adlValues,
+                        borderColor: '#20515F',
+                        backgroundColor: 'rgba(32, 81, 95, 0.1)',
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'Pontuação MG-ADL Total' } }, scales: { y: { min: 0, max: 24 } } }
+            });
+
+            // O MGFA geralmente é I, IIA, IIB, etc. ChartJS lidar com categórico precisa mapeamento, ou exibe apenas gráfico de barras de frequencia, ou PIS.
+            // Para visualização de MGFA atual, mapeamos para indices (I=1, II=2, etc) apenas para eixo Y visual.
+            const mgfaMap = { 'I': 1, 'IIA': 2, 'IIB': 3, 'IIIA': 4, 'IIIB': 5, 'IVA': 6, 'IVB': 7, 'V': 8 };
+            const mgfaLabelsY = ['Zero', 'I', 'IIA', 'IIB', 'IIIA', 'IIIB', 'IVA', 'IVB', 'V'];
+
+            const mgfaValues = seguimentoData.map(d => {
+                const val = (d['MGFA atual'] || '').toString().toUpperCase();
+                return mgfaMap[val] || 0;
+            });
+
+            if (chartInstanceMGFA) chartInstanceMGFA.destroy();
+            const ctxMGFA = document.getElementById('chartMGFA').getContext('2d');
+            chartInstanceMGFA = new Chart(ctxMGFA, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Classificação MGFA',
+                        data: mgfaValues,
+                        borderColor: '#737271',
+                        borderDash: [5, 5],
+                        tension: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { title: { display: true, text: 'Evolução MGFA' } },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 8,
+                            ticks: {
+                                callback: function (value, index, values) {
+                                    return mgfaLabelsY[value] || '';
+                                },
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Mock chart function for demo without URL
+        function renderChartsMock() {
+            const mockData = [
+                { 'Nº avaliação': 1, 'Data avaliação': '01/01/2026', 'MG-ADL (8 itens)': 12, 'MGFA atual': 'IIIA' },
+                { 'Nº avaliação': 2, 'Data avaliação': '01/02/2026', 'MG-ADL (8 itens)': 8, 'MGFA atual': 'IIB' },
+                { 'Nº avaliação': 3, 'Data avaliação': '01/03/2026', 'MG-ADL (8 itens)': 4, 'MGFA atual': 'I' }
+            ];
+            renderCharts(mockData);
+        }
+
+    </script>
+</body>
+
+</html>
